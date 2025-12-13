@@ -1,0 +1,272 @@
+﻿'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useCartStore } from '@/lib/store'
+import ItemCustomizationModal from '@/components/ItemCustomizationModal'
+
+export default function Home() {
+  const [categories, setCategories] = useState([])
+  const [menuItems, setMenuItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedItem, setSelectedItem] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [tableInfo, setTableInfo] = useState<{ tableId: string; tableNumber: number } | null>(null)
+  
+  const { addItem, getTotalItems } = useCartStore()
+  const cartItemCount = getTotalItems()
+
+  // Detect table from URL (QR code scan)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tableId = params.get('table')
+      const tableNumber = params.get('tableNumber')
+      
+      if (tableId && tableNumber) {
+        const info = { tableId, tableNumber: parseInt(tableNumber) }
+        setTableInfo(info)
+        // Save to localStorage for persistence
+        localStorage.setItem('tableInfo', JSON.stringify(info))
+      } else {
+        // Try to load from localStorage
+        const saved = localStorage.getItem('tableInfo')
+        if (saved) {
+          setTableInfo(JSON.parse(saved))
+        }
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const [categoriesRes, itemsRes] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/menu/categories`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/menu/items`)
+      ])
+
+      const categoriesData = await categoriesRes.json()
+      const itemsData = await itemsRes.json()
+
+      setCategories(categoriesData.data || categoriesData)
+      setMenuItems(itemsData.data || itemsData)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddToCart = (item: any) => {
+    setSelectedItem(item)
+    setIsModalOpen(true)
+  }
+
+  const handleQuickAdd = (item: any) => {
+    // Quick add without customization
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: parseFloat(item.price),
+      imageUrl: item.imageUrl,
+    })
+  }
+
+  const filteredItems = selectedCategory
+    ? menuItems.filter((item: any) => item.categoryId === selectedCategory)
+    : menuItems
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading menu...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â½ÃƒÂ¯Ã‚Â¸Ã‚Â My Restaurant</h1>
+                <p className="text-sm text-gray-600">Order delicious food online</p>
+              </div>
+              {tableInfo && (
+                <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold">
+                  ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Table {tableInfo.tableNumber}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {tableInfo && (
+                <button
+                  onClick={() => alert('Waiter has been notified! They will be with you shortly.')}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition font-medium"
+                >
+                  ÃƒÂ°Ã…Â¸Ã¢â€žÂ¢Ã¢â‚¬Â¹ Call Waiter
+                </button>
+              )}
+              <Link 
+                href="/cart"
+                className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition relative"
+              >
+                ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ¢â‚¬â„¢ Cart
+                {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Categories */}
+      <section className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex gap-4 overflow-x-auto">
+            <button 
+              onClick={() => setSelectedCategory(null)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition ${
+                selectedCategory === null 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              All Items
+            </button>
+            {categories.map((category: any) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 rounded-full whitespace-nowrap transition ${
+                  selectedCategory === category.id
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Menu Items Grid */}
+      <section className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredItems.map((item: any) => (
+            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
+              {/* Image */}
+              <div className="relative h-48 bg-gray-200">
+                {item.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                {item.isFeatured && (
+                  <span className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                    ÃƒÂ¢Ã‚Â­Ã‚Â Featured
+                  </span>
+                )}
+                {!item.isAvailable && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <span className="text-white font-semibold">Out of Stock</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
+                  <span className="text-lg font-bold text-primary-600">${item.price}</span>
+                </div>
+
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  {item.description}
+                </p>
+
+                {/* Tags */}
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  {item.dietaryTags && JSON.parse(item.dietaryTags || '[]').includes('vegetarian') && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                      ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± Vegetarian
+                    </span>
+                  )}
+                  {item.spiceLevel > 0 && (
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
+                      ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ Spicy {item.spiceLevel}
+                    </span>
+                  )}
+                  {item.calories && (
+                    <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                      {item.calories} cal
+                    </span>
+                  )}
+                </div>
+
+                {/* Add to Cart Button */}
+                <button
+                  onClick={() => handleAddToCart(item)}
+                  disabled={!item.isAvailable}
+                  className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                >
+                  {item.isAvailable ? 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ¢â‚¬â„¢ Add to Cart' : 'Unavailable'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredItems.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">
+              {selectedCategory ? 'No items in this category' : 'No menu items available'}
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t mt-12">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <div className="text-center text-gray-600">
+            <p>&copy; 2024 My Restaurant. All rights reserved.</p>
+            <div className="mt-2 space-x-4">
+              <Link href="/about" className="hover:text-primary-600">About</Link>
+              <Link href="/contact" className="hover:text-primary-600">Contact</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Customization Modal */}
+      {selectedItem && (
+        <ItemCustomizationModal
+          item={selectedItem}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false)
+            setSelectedItem(null)
+          }}
+        />
+      )}
+    </main>
+  )
+}
+
