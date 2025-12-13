@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "buildCommand": "cd .. && npm install --prefix restaurant-system && npm run build --prefix restaurant-system && npm install --prefix restaurant-system/admin-panel && npm run build --prefix restaurant-system/admin-panel && npm install --prefix restaurant-system/customer-menu && npm run build --prefix restaurant-system/customer-menu && npm install --prefix restaurant-system/cashier-terminal && npm run build --prefix restaurant-system/cashier-terminal && npm install --prefix restaurant-system/kitchen-display && npm run build --prefix restaurant-system/kitchen-display",
+  "installCommand": "npm install",
+  "framework": null,
+  "regions": ["iad1"],
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/:path*"
+    },
+    {
+      "source": "/menu/:path*",
+      "destination": "/menu/:path*"
+    },
+    {
+      "source": "/cashier/:path*",
+      "destination": "/cashier/:path*"
+    },
+    {
+      "source": "/kitchen/:path*",
+      "destination": "/kitchen/:path*"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/admin/(.*)",
+      "dest": "/admin-panel/$1"
+    },
+    {
+      "src": "/menu/(.*)",
+      "dest": "/customer-menu/$1"
+    },
+    {
+      "src": "/cashier/(.*)",
+      "dest": "/cashier-terminal/$1"
+    },
+    {
+      "src": "/kitchen/(.*)",
+      "dest": "/kitchen-display/$1"
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getAuthHeaders } from '@/lib/auth'
+import ReceiptPrint from './ReceiptPrint'
 
 interface OrderItem {
   id: string
@@ -16,7 +17,9 @@ interface Order {
   id: string
   orderNumber: string
   customerName: string | null
+  customerPhone: string | null
   tableId: string | null
+  orderType: string
   table?: {
     tableNumber: string
   }
@@ -25,7 +28,10 @@ interface Order {
   discount: string
   tip: string
   total: string
+  paymentMethod: string | null
   paymentStatus: string
+  createdAt: string
+  completedAt?: string | null
   orderItems: OrderItem[]
 }
 
@@ -49,6 +55,8 @@ export default function PaymentModal({ order, isOpen, onClose, onPaymentComplete
   const [tips, setTips] = useState('0')
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState('')
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null)
 
   const total = parseFloat(order.total)
   const received = parseFloat(amountReceived) || 0
@@ -60,6 +68,8 @@ export default function PaymentModal({ order, isOpen, onClose, onPaymentComplete
       setAmountReceived('')
       setTips('0')
       setError('')
+      setPaymentSuccess(false)
+      setUpdatedOrder(null)
     }
   }, [isOpen])
 
@@ -94,8 +104,16 @@ export default function PaymentModal({ order, isOpen, onClose, onPaymentComplete
         throw new Error('Payment processing failed')
       }
 
+      const updatedOrderData = await response.json()
+      setUpdatedOrder({
+        ...order,
+        ...updatedOrderData,
+        paymentMethod,
+        tip: tipAmount.toString(),
+        total: (total + tipAmount).toFixed(2),
+      })
+      setPaymentSuccess(true)
       onPaymentComplete()
-      onClose()
     } catch (err: any) {
       setError(err.message || 'Payment failed')
     } finally {
@@ -105,6 +123,83 @@ export default function PaymentModal({ order, isOpen, onClose, onPaymentComplete
 
   if (!isOpen) return null
 
+  // Show success screen with receipt after payment
+  if (paymentSuccess && updatedOrder) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          {/* Success Header */}
+          <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-6 rounded-t-2xl">
+            <div className="text-center">
+              <div className="text-5xl mb-2">✅</div>
+              <h2 className="text-2xl font-bold">Payment Successful!</h2>
+              <p className="text-green-100 mt-1">Order #{order.orderNumber}</p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {/* Payment Summary */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Method:</span>
+                  <span className="font-semibold text-gray-900">
+                    {paymentMethod === 'CASH' ? '💵 Cash' : 
+                     paymentMethod === 'CREDIT_CARD' ? '💳 Credit Card' :
+                     paymentMethod === 'DEBIT_CARD' ? '💳 Debit Card' : '📱 Mobile Payment'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Paid:</span>
+                  <span className="font-bold text-green-600 text-lg">
+                    ${(total + tipAmount).toFixed(2)}
+                  </span>
+                </div>
+                {paymentMethod === 'CASH' && received > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Amount Received:</span>
+                      <span className="font-semibold text-gray-900">${received.toFixed(2)}</span>
+                    </div>
+                    {change >= 0 && (
+                      <div className="flex justify-between pt-2 border-t border-green-300">
+                        <span className="text-gray-600">Change Given:</span>
+                        <span className="font-bold text-gray-900">${change.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {tipAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tip Amount:</span>
+                    <span className="font-semibold text-gray-900">${tipAmount.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Receipt Print Component */}
+            <ReceiptPrint 
+              order={updatedOrder} 
+              amountReceived={paymentMethod === 'CASH' ? received : undefined}
+              change={paymentMethod === 'CASH' && change >= 0 ? change : undefined}
+              autoPrint={true}
+            />
+
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show payment form
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">

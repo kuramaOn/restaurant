@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "name": "restaurant-management-system",
+  "builds": [
+    {
+      "src": "restaurant-system/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "restaurant-system/admin-panel/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "restaurant-system/customer-menu/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "restaurant-system/cashier-terminal/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "restaurant-system/kitchen-display/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/admin/?(.*)",
+      "dest": "/restaurant-system/admin-panel/$1"
+    },
+    {
+      "src": "/menu/?(.*)",
+      "dest": "/restaurant-system/customer-menu/$1"
+    },
+    {
+      "src": "/cashier/?(.*)",
+      "dest": "/restaurant-system/cashier-terminal/$1"
+    },
+    {
+      "src": "/kitchen/?(.*)",
+      "dest": "/restaurant-system/kitchen-display/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/restaurant-system/$1"
+    }
+  ]
+}
