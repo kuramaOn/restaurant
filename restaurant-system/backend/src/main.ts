@@ -14,6 +14,7 @@ async function bootstrap() {
     'http://localhost:3001', // Admin Panel
     'http://localhost:3002', // Kitchen Display
     'http://localhost:3003', // Customer Menu
+    'http://localhost:3004', // Customer Menu (alternative port)
     'http://localhost:3005', // Cashier Terminal
   ];
   if (frontendUrl) {
