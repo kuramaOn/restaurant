@@ -1,0 +1,28 @@
+services:
+  # Backend API Service
+  - type: web
+    name: restaurant-backend
+    runtime: docker
+    dockerfilePath: ./restaurant-system/backend/Dockerfile
+    dockerContext: ./restaurant-system/backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: restaurant-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: "*"
+    healthCheckPath: /api/menu/items
+
+databases:
+  # MySQL Database
+  - name: restaurant-db
+    databaseName: restaurant
+    user: restaurant_user
+    plan: free
