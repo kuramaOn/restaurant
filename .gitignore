@@ -48,6 +48,10 @@ prisma/*.db-journal
 tmp_rovodev_*
 *.tmp
 *.temp
+*.backup
+*.original
+*.bak
+*.old
 
 # OS
 Thumbs.db
