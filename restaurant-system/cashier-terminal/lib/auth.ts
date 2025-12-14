@@ -17,7 +17,7 @@ export const removeToken = () => {
   }
 }
 
-export const getAuthHeaders = () => {
+export const getAuthHeaders = (): Record<string, string> => {
   const token = getToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }

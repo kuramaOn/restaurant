@@ -348,15 +348,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 For support, email support@restaurant.com or open an issue in the repository.
 
-## 🎯 Roadmap
-
-- [ ] PWA support (offline mode)
-- [ ] Push notifications
-- [ ] Advanced analytics
-- [ ] Multi-restaurant support
-- [ ] Loyalty program
-- [ ] Online payment integration (Stripe, PayPal)
-- [ ] Delivery tracking
 
 ## 🙏 Acknowledgments
 
