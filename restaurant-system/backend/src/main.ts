@@ -8,10 +8,23 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
   
-  // Enable CORS
+  // Enable CORS for local development and production
+  const frontendUrl = process.env.FRONTEND_URL;
+  const allowedOrigins = [
+    'http://localhost:3001', // Admin Panel
+    'http://localhost:3002', // Kitchen Display
+    'http://localhost:3003', // Customer Menu
+    'http://localhost:3005', // Cashier Terminal
+  ];
+  if (frontendUrl) {
+    allowedOrigins.push(frontendUrl);
+  }
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
+    optionsSuccessStatus: 204,
   });
   
   // Global validation pipe

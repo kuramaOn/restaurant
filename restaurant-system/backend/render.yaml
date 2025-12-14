@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: restaurant-backend
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api
+    # Render will use the Dockerfile in this directory by default
+    buildFilter:
+      paths:
+        - Dockerfile
+        - package.json
+        - prisma/**
+        - src/**
+    preDeployCommand: "npx prisma migrate deploy"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

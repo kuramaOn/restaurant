@@ -138,9 +138,9 @@ cd restaurant-system
 |------------|-----|-------------|
 | Backend API | http://localhost:3000/api | - |
 | Admin Panel | http://localhost:3001 | admin@restaurant.com / admin123 |
-| Cashier Terminal | http://localhost:3002 | admin@restaurant.com / admin123 |
+| Kitchen Display | http://localhost:3002 | chef@restaurant.com / chef123 |
 | Customer Menu | http://localhost:3003 | No login required |
-| Kitchen Display | http://localhost:3004 | chef@restaurant.com / chef123 |
+| Cashier Terminal | http://localhost:3005 | admin@restaurant.com / admin123 |
 
 ## 📱 Mobile Features
 
@@ -244,25 +244,93 @@ cd restaurant-system/customer-menu
 npm run test
 ```
 
-## 🚢 Deployment
+## 🚢 Deployment (Railway + Vercel)
 
-### **Backend (Node.js)**
-Deploy to:
-- Heroku
-- Railway
-- DigitalOcean
-- AWS EC2
+This repo is a monorepo with 1 backend (NestJS) and 4 Next.js apps. Recommended approach: deploy backend to Railway and deploy each frontend app as its own Vercel project.
 
-### **Frontend (Next.js)**
-Deploy to:
-- Vercel (Recommended)
-- Netlify
-- AWS Amplify
+### 1) Backend on Railway (NestJS + Prisma + MySQL)
 
-### **Database**
-- MySQL on Railway
-- PlanetScale
-- AWS RDS
+- Root Directory: `restaurant-system/backend`
+- Build Command: `npm install && npx prisma generate && npm run build`
+- Start Command: `npm run start:prod`
+- Environment Variables (Railway → Variables):
+  - `DATABASE_URL= mysql://root:PUMTdaDQbyukIUjGkGTkEloOgkEckVYn@switchyard.proxy.rlwy.net:41173/railway`
+  - `JWT_SECRET= <generate_a_strong_secret>`
+  - `PORT=3000`
+  - `NODE_ENV=production`
+
+After first deploy (optional):
+- Run `npx prisma db push` and `npx ts-node prisma/seed.ts` if your DB is empty.
+
+### 2) Frontend apps on Vercel (4 projects)
+Deploy the same GitHub repo 4 times and set the Root Directory per app.
+
+- Admin Panel → Root: `restaurant-system/admin-panel`
+- Customer Menu → Root: `restaurant-system/customer-menu`
+- Cashier Terminal → Root: `restaurant-system/cashier-terminal`
+- Kitchen Display → Root: `restaurant-system/kitchen-display`
+
+Environment variables (add to each Vercel project):
+- `NEXT_PUBLIC_API_URL=https://YOUR-BACKEND.up.railway.app/api`
+- `NEXT_PUBLIC_WS_URL=wss://YOUR-BACKEND.up.railway.app`
+
+### 3) CORS Configuration (backend/src/main.ts)
+
+Allow local development and your production Vercel domains:
+
+```ts
+app.enableCors({
+  origin: [
+    // Local
+    'http://localhost:3001', // Admin
+    'http://localhost:3002', // Kitchen
+    'http://localhost:3003', // Customer
+    'http://localhost:3005', // Cashier
+    // Production (update with your real Vercel URLs)
+    'https://restaurant-admin-panel.vercel.app',
+    'https://restaurant-customer-menu.vercel.app',
+    'https://restaurant-cashier-terminal.vercel.app',
+    'https://restaurant-kitchen-display.vercel.app',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+});
+```
+
+### 4) Verify production
+- Backend health: `GET https://YOUR-BACKEND.up.railway.app/api/menu/items`
+- Admin login: `https://restaurant-admin-panel.vercel.app/login`
+- Customer: `https://restaurant-customer-menu.vercel.app/`
+- Cashier: `https://restaurant-cashier-terminal.vercel.app/`
+- Kitchen: `https://restaurant-kitchen-display.vercel.app/`
+
+### 5) Troubleshooting
+- CORS blocked: ensure the frontend origin is present in `enableCors` and you redeployed the backend.
+- 404 on pages: wait for Vercel build to finish; confirm correct root directory for the project.
+- Prisma errors: confirm `DATABASE_URL` is valid and reachable from Railway; run `npx prisma generate` during build.
+- WebSocket not connecting: ensure `NEXT_PUBLIC_WS_URL` uses `wss://` in production.
+
+## 🔧 Environment Variables
+
+Backend (`restaurant-system/backend/.env`):
+```env
+DATABASE_URL="mysql://root:PUMTdaDQbyukIUjGkGTkEloOgkEckVYn@switchyard.proxy.rlwy.net:41173/railway"
+JWT_SECRET="your-strong-secret"
+PORT=3000
+```
+
+Frontend (`.env.local` in each Next.js app):
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+NEXT_PUBLIC_WS_URL=ws://localhost:3000
+```
+
+Production (`Vercel`):
+```env
+NEXT_PUBLIC_API_URL=https://YOUR-BACKEND.up.railway.app/api
+NEXT_PUBLIC_WS_URL=wss://YOUR-BACKEND.up.railway.app
+```
 
 ## 📝 License
 

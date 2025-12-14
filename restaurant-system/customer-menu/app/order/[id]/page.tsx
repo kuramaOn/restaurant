@@ -15,7 +15,7 @@ export default function OrderTrackingPage() {
     fetchOrder()
     
     // Connect to WebSocket for real-time updates
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000')
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000') // Uses env (wss in prod)
     
     socket.on('order_updated', (data) => {
       if (data.orderId === orderId) {

@@ -1,0 +1,1 @@
+Note: All API calls are wired to use NEXT_PUBLIC_API_URL via lib/api.ts and inline references in app/* files. Update this env in Vercel to point to your Render backend (https://your-backend.onrender.com/api).

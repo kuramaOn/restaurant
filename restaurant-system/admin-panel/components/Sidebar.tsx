@@ -60,7 +60,7 @@ export default function Sidebar() {
 
         <div className="mt-6 pt-6 border-t border-gray-200">
           <a
-            href="/cashier"
+            href="https://restaurant-cashier.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition font-semibold"
