@@ -1,5 +1,6 @@
 # ===================================
 # Stage 1: Build Stage
+# Force rebuild - Fix: 2025-12-14
 # ===================================
 FROM node:20-slim AS builder
 
