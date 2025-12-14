@@ -51,14 +51,18 @@ COPY package*.json ./
 # Copy Prisma schema
 COPY prisma ./prisma
 
-# Install ONLY production dependencies
-RUN npm ci --omit=dev
+# Install ONLY production dependencies (without running postinstall)
+RUN npm ci --omit=dev --ignore-scripts
 
-# Generate Prisma client (needed at runtime)
-RUN npx prisma generate
+# Generate Prisma client manually (needed at runtime)
+# Install prisma temporarily for generation
+RUN npm install prisma@5.8.0 && npx prisma generate && npm uninstall prisma
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Verify copied files
+RUN ls -la dist/ && echo "Contents of dist/main.js:" && head -n 5 dist/main.js || echo "main.js not found!"
 
 # Runtime environment
 ENV NODE_ENV=production
