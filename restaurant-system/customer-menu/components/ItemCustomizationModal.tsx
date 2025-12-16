@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useCartStore } from '@/lib/store'
+import BottomSheetModal from './BottomSheetModal'
 
 interface MenuItem {
   id: string
@@ -183,32 +184,27 @@ export default function ItemCustomizationModal({ item, isOpen, onClose }: Custom
   ]
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header with Image */}
-        <div className="relative">
-          {item.imageUrl && (
+    <BottomSheetModal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      title={item.name}
+      height="full"
+    >
+      <div className="p-6">
+        {/* Item Image */}
+        {item.imageUrl && (
+          <div className="relative -mx-6 -mt-6 mb-6">
             <img 
               src={item.imageUrl} 
               alt={item.name}
-              className="w-full h-64 object-cover rounded-t-2xl"
+              className="w-full h-48 object-cover"
             />
-          )}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+          </div>
+        )}
 
-        <div className="p-6">
-          {/* Item Info */}
-          <div className="mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{item.name}</h2>
-            <p className="text-gray-600 mb-3">{item.description}</p>
+        {/* Item Info */}
+        <div className="mb-6">
+          <p className="text-gray-600 mb-3">{item.description}</p>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               {item.preparationTime && (
                 <span className="flex items-center gap-1">
@@ -341,14 +337,14 @@ export default function ItemCustomizationModal({ item, isOpen, onClose }: Custom
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition font-bold text-lg"
+                  className="w-14 h-14 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition font-bold text-xl min-h-[56px] min-w-[56px]"
                 >
-                  
+                  −
                 </button>
-                <span className="text-xl font-bold text-gray-900 w-8 text-center">{quantity}</span>
+                <span className="text-xl font-bold text-gray-900 w-12 text-center">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition font-bold text-lg"
+                  className="w-14 h-14 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition font-bold text-xl min-h-[56px] min-w-[56px]"
                 >
                   +
                 </button>
@@ -357,13 +353,12 @@ export default function ItemCustomizationModal({ item, isOpen, onClose }: Custom
 
             <button
               onClick={handleAddToCart}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold text-lg flex items-center gap-2"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg flex items-center gap-2 min-h-[56px]"
             >
               Add to Cart - ${calculateTotalPrice().toFixed(2)}
             </button>
-          </div>
         </div>
       </div>
-    </div>
+    </BottomSheetModal>
   )
 }

@@ -15,7 +15,7 @@ export default function FloatingActionButton() {
   return (
     <button
       onClick={() => router.push('/cart')}
-      className="fixed bottom-24 right-4 md:bottom-6 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-full shadow-2xl z-50 flex items-center gap-3 px-6 py-4 hover:shadow-3xl transition-all hover:scale-105 active:scale-95"
+      className="fixed bottom-24 right-4 md:bottom-6 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-full shadow-2xl z-50 flex items-center gap-3 px-6 py-4 hover:shadow-3xl transition-all hover:scale-105 active:scale-95 min-h-[56px]"
     >
       <div className="relative">
         <span className="text-2xl">🛒</span>
