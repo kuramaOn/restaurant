@@ -13,13 +13,6 @@ export default function KitchenDisplay() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = getToken()
-    if (!token) {
-      router.push('/login')
-      return
-    }
-
     fetchOrders()
 
     // Connect to WebSocket for real-time updates
@@ -41,16 +34,7 @@ export default function KitchenDisplay() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/kitchen`, {
-        headers: {
-          ...getAuthHeaders(),
-        }
-      })
-      if (response.status === 401) {
-        removeToken()
-        router.push('/login')
-        return
-      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/kitchen`)
       if (response.ok) {
         const data = await response.json()
         setOrders(data)
@@ -74,7 +58,6 @@ export default function KitchenDisplay() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(),
         },
         body: JSON.stringify({ status }),
       })
@@ -84,9 +67,8 @@ export default function KitchenDisplay() {
     }
   }
 
-  const handleLogout = () => {
-    removeToken()
-    router.push('/login')
+  const handleRefresh = () => {
+    fetchOrders()
   }
 
   const getElapsedTime = (createdAt: string) => {
@@ -151,12 +133,6 @@ export default function KitchenDisplay() {
               className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition font-medium"
             >
               🔄 Refresh
-            </button>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition font-medium"
-            >
-              🚪 Logout
             </button>
             <div className="text-right">
               <div className="text-2xl font-bold">
